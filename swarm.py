@@ -25,9 +25,14 @@ class Swarm():
     def list_paths(self):
         for bot in self.swarm_map:
             for neighbor in self.swarm_map[bot]:
-                print(bot.get_id(), "->", neighbor.get_id())
+                print("robot #",bot.get_id(),"->","robot #",neighbor.get_id())
+            print("\n")
     def connect_bots(self,bot1,bot2):
         self.swarm_map[bot1].append(bot2)
+    def print_leader(self):
+        for bot in self.swarm_map:
+            if len(self.swarm_map[bot]) == len(self.swarm_map)-1:
+                print("robot #",bot.get_id(),"is the leader")
 
 bot1 = Robot((50,50))
 bot2 = Robot((75,50))
@@ -40,5 +45,7 @@ swarm.add_bot(bot3)
 
 swarm.connect_bots(bot1,bot2)
 swarm.connect_bots(bot1,bot3)
+swarm.connect_bots(bot2,bot1)
+swarm.connect_bots(bot3,bot1)
 
-swarm.list_paths()
+swarm.print_leader()
