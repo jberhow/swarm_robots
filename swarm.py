@@ -1,3 +1,5 @@
+import pygame
+
 # class for each robot object
 class Robot():
     def __init__(self,pos,id=0):
@@ -18,6 +20,7 @@ class Swarm():
         if robot not in self.swarm_map:
             self.latest_id = self.latest_id + 1;
             robot.set_id(self.latest_id)
+            self.ids.append(self.latest_id)
             self.swarm_map[robot]=[]
     def list_bots(self):
         for bot in self.swarm_map:
@@ -34,18 +37,23 @@ class Swarm():
             if len(self.swarm_map[bot]) == len(self.swarm_map)-1:
                 print("robot #",bot.get_id(),"is the leader")
 
-bot1 = Robot((50,50))
-bot2 = Robot((75,50))
-bot3 = Robot((50,150))
-swarm = Swarm()
+def main():
 
-swarm.add_bot(bot1)
-swarm.add_bot(bot2)
-swarm.add_bot(bot3)
+    bot1 = Robot((50,50))
+    bot2 = Robot((75,50))
+    bot3 = Robot((50,150))
+    swarm = Swarm()
 
-swarm.connect_bots(bot1,bot2)
-swarm.connect_bots(bot1,bot3)
-swarm.connect_bots(bot2,bot1)
-swarm.connect_bots(bot3,bot1)
+    swarm.add_bot(bot1)
+    swarm.add_bot(bot2)
+    swarm.add_bot(bot3)
 
-swarm.print_leader()
+    swarm.connect_bots(bot1,bot2)
+    swarm.connect_bots(bot1,bot3)
+    swarm.connect_bots(bot2,bot1)
+    swarm.connect_bots(bot3,bot1)
+
+    swarm.print_leader()
+
+if __name__=="__main__":
+    main()
