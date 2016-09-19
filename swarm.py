@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 import pygame
 
 # class for each robot object
@@ -39,8 +41,10 @@ class Swarm():
 
 def main():
 
-    bot1 = Robot((50,50))
-    bot2 = Robot((75,50))
+    pygame.init()
+
+    bot2 = Robot((50,50))
+    bot1 = Robot((75,50))
     bot3 = Robot((50,150))
     swarm = Swarm()
 
@@ -53,6 +57,7 @@ def main():
     swarm.connect_bots(bot2,bot1)
     swarm.connect_bots(bot3,bot1)
 
+    swarm.list_paths()
     swarm.print_leader()
 
 if __name__=="__main__":
