@@ -2,38 +2,52 @@
 
 if [ "$(id -u)" != "0" ]
 then
-echo "You need to run this with sudo."
-exit 1
+	echo "You need to run this with sudo."
+	exit 1
 fi
 
 interfaces='/etc/network/interfaces'
+dhcpcd='/etc/dhcpcd.conf'
+dnsmasq='/etc/dnsmasq.conf'
+rclocal='/etc/rc.local'
 
 # write in murican
 setxkbmap us
 
 # wlan1 doesn't even exist... delete it and the next 3 lines
-sed -e '/wlan1/,+3d' < $interfaces > $interfaces.new; \
-mv $interfaces.new $interfaces
+sed -ie '/wlan1/,+3d' $interfaces
 
 # remove wpa supplicant stuff. Might have to rethink this
-sed -e '/iface wlan0 inet manual/,+2d' < $interfaces > $interfaces.new; \
-mv $interfaces.new $interfaces
+sed -ie '/iface wlan0 inet manual/,+2d' $interfaces
 
 # add auto wlan0
 if ! grep 'auto wlan0' $interfaces
 then
-sed -e '/iface eth0 inet dhcp/a auto wlan0' < $interfaces > $interfaces.new; \
-mv $interfaces.new $interfaces
+	sed -ie '/iface eth0 inet dhcp/a auto wlan0' $interfaces
 fi
 
 # replace manual with dhcp cause pi says so
-sed 's/\(iface eth0 inet\).*/\1 dhcp/' < $interfaces > $interfaces.new; \
-mv $interfaces.new $interfaces
+sed -i 's/\(iface eth0 inet\).*/\1 dhcp/' $interfaces
+sed -i 's/\(iface wlan0 inet\).*/\1 dhcp/' $interfaces
 
 # add wifi info
 if ! grep '4SXF5' $interfaces
 then
-echo -e 'iface wlan0 inet dhcp\n\twpa-ssid "4SXF5"\n\twpa-psk "JL2LH95CNS8Y9PG7"' >> $interfaces
+	echo -e 'iface wlan0 inet dhcp\n\twpa-ssid "4SXF5"\n\twpa-psk "JL2LH95CNS8Y9PG7"' >> $interfaces
 fi
+
+if grep 'address' $interfaces
+then
+	sed -ie '/address/,+4d' $interfaces
+fi
+
+sed -i 's/\(denyinterfaces wlan0\)/# \1/' $dhcpcd
+
+sed -ie '/iptables-restore/,+1d' $rclocal
+
+cp $dnsmasq.orig $dnsmasq
+
+service hostapd stop
+service dnsmasq stop
 
 reboot
