@@ -29,9 +29,9 @@ then
 	awk '/iface wlan0 inet static/{print $0 RS "\taddress\t\t172.24.1.1" RS "\tnetmask\t\t255.255.255.0" RS "\tnetwork\t\t172.24.1.0" RS "\tbroadcast\t172.24.1.255";next}1' $interfaces > tmp && mv tmp $interfaces
 fi
 
-if grep '4SXF5' $interfaces
+if grep 'UCInet Mobile Access' $interfaces
 then
-	sed -ie '/4SXF5/,+2d' $interfaces
+	sed -ie '/UCInet Mobile Access/,+3d' $interfaces
 fi
 
 service dhcpcd restart

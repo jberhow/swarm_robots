@@ -31,9 +31,9 @@ sed -i 's/\(iface eth0 inet\).*/\1 dhcp/' $interfaces
 sed -i 's/\(iface wlan0 inet\).*/\1 dhcp/' $interfaces
 
 # add wifi info
-if ! grep '4SXF5' $interfaces
+if ! grep 'UCInet Mobile Access' $interfaces
 then
-	echo -e 'iface wlan0 inet dhcp\n\twpa-ssid "4SXF5"\n\twpa-psk "JL2LH95CNS8Y9PG7"' >> $interfaces
+	echo -e 'iface wlan0 inet dhcp\n\twpa-ssid "UCInet Mobile Access"\n\twpa-key-mgmt NONE\n\twpa-auth-alg OPEN\n' >> $interfaces
 fi
 
 if grep 'address' $interfaces
