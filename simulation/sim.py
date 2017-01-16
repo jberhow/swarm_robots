@@ -9,6 +9,7 @@ import time
 import math
 
 pygame.init()
+pygame.key.set_repeat(10,10)
 
 size = width, height = 640, 480
 
@@ -28,12 +29,11 @@ velocity = velocityX, velocityY = 1, 1
 # TODO: see how to make the code more elegant, it's getting rowdy
 class Robot():
 
-    def __init__(self, pos, velx, vely, avel, size=(10, 10), color=colors['green']):
+    def __init__(self, pos, velx, avel, size=(10, 10), color=colors['green']):
         self.pos = pos
         self.size = size
         self.color = color
-        self.velx = velx
-        self.vely = vely
+        self.vel = velx
         self.avel = avel
         self.rect = pygame.draw.rect(screen, 
                 self.color, (self.pos, self.size))
@@ -52,17 +52,25 @@ class Robot():
                     self.rect.center[0] + 20*math.cos(self.hangulation), 
                     self.rect.center[1] - 20*math.sin(self.hangulation)), 2)
 
-    def move(self):
-        if (self.rect.x + self.rect.w > width or self.rect.x < 0):
-            self.velx = -self.velx
-        if (self.rect.y + self.rect.h > height or self.rect.y < 0):
-            self.vely = -self.vely
+    def rotate_ccw(self):
         self.hangulation = self.hangulation + self.avel
-        self.rect.move_ip(self.velx,self.vely)
-        self.direction.move_ip(self.velx,self.vely)
+
+    def rotate_cw(self):
+        self.hangulation = self.hangulation - self.avel
+
+    def move_backward(self):
+        self.rect.move_ip(-self.vel*math.cos(self.hangulation),
+                self.vel*math.sin(self.hangulation))
+        self.direction.move_ip(-self.vel*math.cos(self.hangulation),
+                self.vel*math.sin(self.hangulation))
+    def move_forward(self):
+        self.rect.move_ip(self.vel*math.cos(self.hangulation),
+                -self.vel*math.sin(self.hangulation))
+        self.direction.move_ip(self.vel*math.cos(self.hangulation),
+                -self.vel*math.sin(self.hangulation))
         
-robot1 = Robot((50, 50), 1, 1, math.pi/12)
-robot2 = Robot((10, 10), 2, 2, math.pi/24)
+robot1 = Robot((50, 50), 5, math.pi/24)
+robot2 = Robot((10, 10), 5, math.pi/24)
 
 robots = [robot1, robot2]
 
@@ -72,8 +80,21 @@ def update():
     if (pygame.event.peek(pygame.QUIT)):
         pygame.display.quit()
         sys.exit()
-    for robot in robots:
-        robot.move()
+    # control input
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN: 
+            if event.key == pygame.K_LEFT:
+                for robot in robots:
+                    robot.rotate_ccw() 
+            if event.key == pygame.K_RIGHT:
+                for robot in robots:
+                    robot.rotate_cw() 
+            if event.key == pygame.K_DOWN:
+                for robot in robots:
+                    robot.move_backward() 
+            if event.key == pygame.K_UP:
+                for robot in robots:
+                    robot.move_forward() 
 
 def render():
     screen.fill(colors['black'])
