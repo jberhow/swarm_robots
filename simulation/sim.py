@@ -22,34 +22,67 @@ screen = pygame.display.set_mode(size)
 
 velocity = velocityX, velocityY = 1, 1
 
-# TODO: create a robot class
-robotPos = robotX, robotY = 50, 50
-robotSize = robotW, robotH = 50, 50
-robotColor = colors['green']
+# TODO: move robot class out of sim.py into its own module
+class Robot():
 
-running = True
+    def __init__(self, pos, velx, vely, size=(5, 5), color=colors['green']):
+        self.pos = pos
+        self.size = size
+        self.color = color
+        self.velx = velx
+        self.vely = vely
+        self.rect = pygame.draw.rect(screen, self.color, (self.pos, self.size))
 
-robot = pygame.draw.rect(screen, robotColor, (robotPos, robotSize))
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
 
-# TODO: make separate functions for rendering and updating
-while running:
+    def move(self):
+        if (self.rect.x + self.rect.w > width or self.rect.x < 0):
+            self.velx = -self.velx
+        if (self.rect.y + self.rect.h > height or self.rect.y < 0):
+            self.vely = -self.vely
+        self.rect.move_ip(self.velx,self.vely)
+        
+robot1 = Robot((50, 50), 1, 1)
+robot2 = Robot((10, 10), 2, 2)
 
+robots = [robot1, robot2]
+
+# TODO: controls need to be handled in update()
+def update():
     # close out if quit button is pressed on window
     if (pygame.event.peek(pygame.QUIT)):
         pygame.display.quit()
-        running = False
-        
-    # update portion
-    if (robot.x + robot.w > width or robot.x < 0):
-        velocityX = -velocityX
-    if (robot.y + robot.h > height or robot.y < 0):
-        velocityY = -velocityY
-    robot.move_ip(velocityX, velocityY)
-        
-    # render portion
-    screen.fill(colors['black'], robot)
-    pygame.draw.rect(screen, robotColor, robot)
+        sys.exit()
+    for robot in robots:
+        robot.move()
+
+def render():
+    screen.fill(colors['black'])
+    for robot in robots:
+        robot.draw()
     pygame.display.flip()
     pygame.time.delay(10)
 
-sys.exit()
+# TODO: maybe make a Game object that gets instantiated in __main__
+while 1:
+
+    # controls
+    # up, down, rotate left, rotate right
+    #for event in pygame.event.get():
+    #    if event.type == pygame.KEYDOWN:
+    #        if event.key == pygame.K_UP:
+    #           robot.move_forward() 
+    #        if event.key == pygame.K_DOWN:
+    #            robot.move_backward()
+    #        if event.key == pygame.K_LEFT:
+    #           robot.rotate_ccw() 
+    #        if event.key == pygame.K_RIGHT:
+    #            robot.rotate_cw()
+
+    # update portion
+    update()
+        
+    # render portion
+    render()
+
