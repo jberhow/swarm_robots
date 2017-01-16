@@ -9,7 +9,7 @@ import time
 import math
 
 pygame.init()
-pygame.key.set_repeat(10,10)
+pygame.key.set_repeat(50,50)
 
 size = width, height = 640, 480
 
@@ -72,7 +72,7 @@ class Robot():
 robot1 = Robot((50, 50), 5, math.pi/24)
 robot2 = Robot((10, 10), 5, math.pi/24)
 
-robots = [robot1, robot2]
+robots = []
 
 # TODO: controls need to be handled in update()
 def update():
@@ -80,8 +80,12 @@ def update():
     if (pygame.event.peek(pygame.QUIT)):
         pygame.display.quit()
         sys.exit()
+
     # control input
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            robots.append(Robot((pygame.mouse.get_pos()[0],
+                pygame.mouse.get_pos()[1]),5,math.pi/24))
         if event.type == pygame.KEYDOWN: 
             if event.key == pygame.K_LEFT:
                 for robot in robots:
