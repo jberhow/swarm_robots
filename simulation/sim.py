@@ -25,16 +25,61 @@ screen = pygame.display.set_mode(size)
 
 velocity = velocityX, velocityY = 1, 1
 
+class Controller():
+
+    def __init__(self, avel=math.pi/24, pos=(int(0.9*width), 
+            int(0.9*height)), 
+            radius=int(0.09*height)):
+        self.avel = avel
+        self.pos = pos
+        self.radius = radius
+        self.color = colors['white']
+        self.rect = pygame.draw.circle(screen, colors['white'], 
+                self.pos, self.radius, 2)
+
+        self.hangulation = math.pi/2
+
+    def draw(self):
+        self.rect = pygame.draw.circle(screen, self.color, 
+                self.pos, self.radius, 2)
+        self.direction = pygame.draw.line(screen,
+                self.color ,self.rect.center, (
+                    self.rect.center[0] + 
+                    self.radius*math.cos(self.hangulation), 
+                    self.rect.center[1] - 
+                    self.radius*math.sin(self.hangulation)), 2)
+
+    def update(self):
+        if (self.hangulation > math.pi):
+            self.hangulation = -math.pi
+        if (self.hangulation < -math.pi):
+            self.hangulation = math.pi
+
+    def rotate_ccw(self):
+        self.hangulation = self.hangulation + self.avel
+
+    def rotate_cw(self):
+        self.hangulation = self.hangulation - self.avel
+
+    def move_forward(self):
+        self.color = colors['green']
+
+    def move_backward(self):
+        self.color = colors['red']
+
+
 # TODO: move robot class out of sim.py into its own module
 # TODO: see how to make the code more elegant, it's getting rowdy
 class Robot():
 
-    def __init__(self, pos, velx, avel, size=(10, 10), color=colors['green']):
+    def __init__(self, pos, velx, avel, controller, size=(10, 10), 
+            color=colors['green']):
         self.pos = pos
         self.size = size
         self.color = color
         self.vel = velx
         self.avel = avel
+        self.controller = controller
         self.rect = pygame.draw.rect(screen, 
                 self.color, (self.pos, self.size))
 
@@ -50,7 +95,19 @@ class Robot():
         self.direction = pygame.draw.line(screen,
                 colors['white'],self.rect.center, (
                     self.rect.center[0] + 20*math.cos(self.hangulation), 
-                    self.rect.center[1] - 20*math.sin(self.hangulation)), 2)
+                    self.rect.center[1] - 20*math.sin(self.hangulation)), 
+                2)
+
+    def update(self):
+        if (self.hangulation >= math.pi):
+            self.hangulation = -math.pi
+        if (self.hangulation < -math.pi):
+            self.hangulation = math.pi
+
+        if (self.hangulation < controller.hangulation):
+            self.hangulation = self.hangulation + self.avel
+        if (self.hangulation > controller.hangulation):
+            self.hangulation = self.hangulation - self.avel
 
     def rotate_ccw(self):
         self.hangulation = self.hangulation + self.avel
@@ -69,9 +126,7 @@ class Robot():
         self.direction.move_ip(self.vel*math.cos(self.hangulation),
                 -self.vel*math.sin(self.hangulation))
         
-robot1 = Robot((50, 50), 5, math.pi/24)
-robot2 = Robot((10, 10), 5, math.pi/24)
-
+controller = Controller()
 robots = []
 
 # TODO: controls need to be handled in update()
@@ -85,23 +140,34 @@ def update():
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             robots.append(Robot((pygame.mouse.get_pos()[0],
-                pygame.mouse.get_pos()[1]),5,math.pi/24))
+                pygame.mouse.get_pos()[1]),5,math.pi/24, controller))
         if event.type == pygame.KEYDOWN: 
             if event.key == pygame.K_LEFT:
+                controller.rotate_ccw() 
                 for robot in robots:
                     robot.rotate_ccw() 
             if event.key == pygame.K_RIGHT:
+                controller.rotate_cw() 
                 for robot in robots:
                     robot.rotate_cw() 
             if event.key == pygame.K_DOWN:
+                controller.move_backward() 
                 for robot in robots:
                     robot.move_backward() 
             if event.key == pygame.K_UP:
+                controller.move_forward() 
                 for robot in robots:
-                    robot.move_forward() 
+                    robot.move_forward()
+        if event.type == pygame.KEYUP:
+            controller.color = colors['white']
+
+    controller.update()
+    for robot in robots:
+        robot.update()
 
 def render():
     screen.fill(colors['black'])
+    controller.draw()
     for robot in robots:
         robot.draw()
     pygame.display.flip()
