@@ -9,7 +9,7 @@ import time
 import math
 
 pygame.init()
-pygame.key.set_repeat(50,50)
+pygame.key.set_repeat(20,20)
 
 size = width, height = 640, 480
 
@@ -140,7 +140,7 @@ def update():
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             robots.append(Robot((pygame.mouse.get_pos()[0],
-                pygame.mouse.get_pos()[1]),5,math.pi/24, controller))
+                pygame.mouse.get_pos()[1]),5,math.pi/180, controller))
         if event.type == pygame.KEYDOWN: 
             if event.key == pygame.K_LEFT:
                 controller.rotate_ccw() 
@@ -171,7 +171,7 @@ def render():
     for robot in robots:
         robot.draw()
     pygame.display.flip()
-    pygame.time.delay(10)
+    pygame.time.delay(20)
 
 # TODO: maybe make a Game object that gets instantiated in __main__
 while 1:
