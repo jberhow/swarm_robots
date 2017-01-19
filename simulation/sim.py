@@ -21,9 +21,20 @@ colors = {
         'blue': (0,0,255)
         }
 
+robots = []
+
 screen = pygame.display.set_mode(size)
 
 velocity = velocityX, velocityY = 1, 1
+
+class Camera():
+
+    def __init__(self):
+        self.cam_screen = pygame.draw.rect(screen, colors['red'], 
+                ((0, 0),(100, 20)))
+         
+    def draw(self):
+        pygame.draw.rect(screen, colors['red'], self.cam_screen) 
 
 class Controller():
 
@@ -72,12 +83,12 @@ class Controller():
 # TODO: see how to make the code more elegant, it's getting rowdy
 class Robot():
 
-    def __init__(self, pos, velx, avel, controller, size=(10, 10), 
+    def __init__(self, pos, vel, avel, controller, size=(10, 10), 
             color=colors['green']):
         self.pos = pos
         self.size = size
         self.color = color
-        self.vel = velx
+        self.vel = vel
         self.avel = avel
         self.controller = controller
         self.rect = pygame.draw.rect(screen, 
@@ -88,15 +99,17 @@ class Robot():
                 colors['white'],self.rect.center, (
                     self.rect.center[0] + 20*math.cos(self.hangulation), 
                     self.rect.center[1] - 20*math.sin(self.hangulation)), 2)
-
+        self.camera = Camera()
+                
     def draw(self):
         pygame.draw.rect(screen, self.color, self.rect)
         #pygame.draw.rect(screen, colors['white'], self.direction)
         self.direction = pygame.draw.line(screen,
                 colors['white'],self.rect.center, (
-                    self.rect.center[0] + 20*math.cos(self.hangulation), 
-                    self.rect.center[1] - 20*math.sin(self.hangulation)), 
+                self.rect.center[0] + 20*math.cos(self.hangulation), 
+                self.rect.center[1] - 20*math.sin(self.hangulation)), 
                 2)
+        self.camera.draw()
 
     def update(self):
         if (self.hangulation >= math.pi):
@@ -108,6 +121,7 @@ class Robot():
             self.hangulation = self.hangulation + self.avel
         if (self.hangulation > controller.hangulation):
             self.hangulation = self.hangulation - self.avel
+
 
     def rotate_ccw(self):
         self.hangulation = self.hangulation + self.avel
@@ -127,7 +141,6 @@ class Robot():
                 -self.vel*math.sin(self.hangulation))
         
 controller = Controller()
-robots = []
 
 # TODO: controls need to be handled in update()
 def update():
@@ -175,19 +188,6 @@ def render():
 
 # TODO: maybe make a Game object that gets instantiated in __main__
 while 1:
-
-    # controls
-    # up, down, rotate left, rotate right
-    #for event in pygame.event.get():
-    #    if event.type == pygame.KEYDOWN:
-    #        if event.key == pygame.K_UP:
-    #           robot.move_forward() 
-    #        if event.key == pygame.K_DOWN:
-    #            robot.move_backward()
-    #        if event.key == pygame.K_LEFT:
-    #           robot.rotate_ccw() 
-    #        if event.key == pygame.K_RIGHT:
-    #            robot.rotate_cw()
 
     # update portion
     update()
