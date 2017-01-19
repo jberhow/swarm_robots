@@ -117,10 +117,19 @@ class Robot():
         if (self.hangulation < -math.pi):
             self.hangulation = math.pi
 
-        if (self.hangulation < controller.hangulation):
-            self.hangulation = self.hangulation + self.avel
-        if (self.hangulation > controller.hangulation):
-            self.hangulation = self.hangulation - self.avel
+        rotationalDifference = self.hangulation - controller.hangulation
+
+        if(rotationalDifference == 0):
+            return
+        if(rotationalDifference > 0 and rotationalDifference < math.pi):
+            self.rotate_cw()
+        elif(rotationalDifference > 0 and rotationalDifference >= math.pi):
+            self.rotate_ccw()
+        elif(rotationalDifference < 0 and rotationalDifference > -math.pi):
+            self.rotate_ccw()
+        elif(rotationalDifference < 0 and rotationalDifference <= -math.pi):
+            self.rotate_cw()
+
 
 
     def rotate_ccw(self):
@@ -180,11 +189,15 @@ def update():
 
 def render():
     screen.fill(colors['black'])
+    font = pygame.font.SysFont("monospace", 15)
+    label = font.render(str(controller.hangulation), 1, (255, 255, 255))
+    screen.blit(label, (100, 100))
     controller.draw()
     for robot in robots:
         robot.draw()
     pygame.display.flip()
     pygame.time.delay(20)
+
 
 # TODO: maybe make a Game object that gets instantiated in __main__
 while 1:
