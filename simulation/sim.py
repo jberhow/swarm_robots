@@ -33,16 +33,25 @@ class Camera():
 
     def __init__(self):
         self.mini_screen = pygame.Surface((160, 50))
+        self.min = 9999 # for returning closest blob
          
     def draw(self, angle, distance, n):
         # y = mx + b convering angles to x-axis
         start_point = 80*angle/math.pi+80
         # height will be 50 pixels tall
         end_point = -distance / 8. + 50
-        pygame.draw.line(self.mini_screen, colors['white'],
-                (int(start_point), 50),
-                (int(start_point), 50 - int(end_point)))
-        cam_screen.blit(self.mini_screen, (0, n*50))
+        pygame.draw.rect(self.mini_screen, colors['green'],
+                ( (0, 0),(160, 50) ), 2)
+        if (distance <= self.min):
+            self.min = distance
+            pygame.draw.line(self.mini_screen, colors['red'],
+                    (int(start_point), 50),
+                    (int(start_point), 50 - int(end_point)))
+        else:
+            pygame.draw.line(self.mini_screen, colors['white'],
+                    (int(start_point), 50),
+                    (int(start_point), 50 - int(end_point)))
+
 
 class Controller():
 
@@ -57,6 +66,7 @@ class Controller():
                 self.pos, self.radius, 2)
 
         self.hangulation = math.pi/2
+        self.is_moving = False
 
     def draw(self):
         self.rect = pygame.draw.circle(screen, self.color, 
@@ -82,9 +92,11 @@ class Controller():
 
     def move_forward(self):
         self.color = colors['green']
+        self.is_moving = True
 
     def move_backward(self):
         self.color = colors['red']
+        self.is_moving = True
 
 
 # TODO: move robot class out of sim.py into its own module
@@ -106,8 +118,10 @@ class Robot():
         self.hangulation = math.pi/2
         self.direction = pygame.draw.line(screen,
                 colors['white'],self.rect.center, (
-                    self.rect.center[0] + 20*math.cos(self.hangulation), 
-                    self.rect.center[1] - 20*math.sin(self.hangulation)), 2)
+                    self.rect.center[0] + 
+                    20*math.cos(self.hangulation), 
+                    self.rect.center[1] - 
+                    20*math.sin(self.hangulation)), 2)
         self.camera = Camera()
                 
     def draw(self):
@@ -133,26 +147,36 @@ class Robot():
                     robot.rect.center[0])**2 + (self.rect.center[1] -
                         robot.rect.center[1])**2))
                 self.camera.draw(angle, distance, self.n)
-
+        
+        cam_screen.blit(self.camera.mini_screen, (0, self.n*50))
 
     def update(self):
+
+        # update wrt controller
         if (self.hangulation >= math.pi):
             self.hangulation = -math.pi
         if (self.hangulation < -math.pi):
             self.hangulation = math.pi
 
-        rotationalDifference = self.hangulation - controller.hangulation
+        rotationalDifference = ( self.hangulation - 
+                controller.hangulation )
 
-        if(rotationalDifference == 0):
-            return
-        if(rotationalDifference > 0 and rotationalDifference < math.pi):
-            self.rotate_cw()
-        elif(rotationalDifference > 0 and rotationalDifference >= math.pi):
-            self.rotate_ccw()
-        elif(rotationalDifference < 0 and rotationalDifference > -math.pi):
-            self.rotate_ccw()
-        elif(rotationalDifference < 0 and rotationalDifference <= -math.pi):
-            self.rotate_cw()
+        if ( controller.is_moving ):
+            if(rotationalDifference == 0):
+                return
+            if(rotationalDifference > 0 and 
+                    rotationalDifference < math.pi):
+                self.rotate_cw()
+            elif(rotationalDifference > 0 and 
+                    rotationalDifference >= math.pi):
+                self.rotate_ccw()
+            elif(rotationalDifference < 0 and 
+                    rotationalDifference > -math.pi):
+                self.rotate_ccw()
+            elif(rotationalDifference < 0 and 
+                   rotationalDifference <= -math.pi):
+                self.rotate_cw()
+        # end: update wrt controller
 
 
 
@@ -209,6 +233,7 @@ def update():
                     robot.move_forward()
         if event.type == pygame.KEYUP:
             controller.color = colors['white']
+            controller.is_moving = False
 
     controller.update()
     for robot in robots:
@@ -217,7 +242,8 @@ def update():
 def render():
     screen.fill(colors['black'])
     font = pygame.font.SysFont("monospace", 15)
-    label = font.render(str(controller.hangulation), 1, colors['white'])
+    label = font.render(str(controller.hangulation), 1, 
+            colors['white'])
     screen.blit(label, (100, 100))
     controller.draw()
     for robot in robots:
