@@ -40,6 +40,7 @@ class Camera():
         self.min = 9999 # for returning closest blob
          
     def draw(self, angle, distance, n):
+        self.mini_screen.fill(colors['black'])
         # y = mx + b convering angles to x-axis
         start_point = 80*angle/math.pi+80
         # height will be 50 pixels tall
@@ -121,9 +122,10 @@ class Robot():
 
         self.hangulation = math.pi/2
         self.direction = pygame.draw.line(screen,
-                colors['blue'],self.rect.center, (
-                    self.rect.center[0] + 
-                    20*math.cos(self.hangulation), 
+                colors['blue'], self.rect.center, (
+                    self.rect.center[0] + 20*math.cos(self.hangulation), 
+                    self.rect.center[1] - 20*math.sin(self.hangulation)), 2)
+
         self.sensors = []
         self.sensors.append(IR_Sensor(tuple(map(operator.add, self.rect.center,
                                                 (self.rect.height/2*math.cos(self.hangulation),
@@ -226,13 +228,10 @@ class Robot():
             if(rotationalDifference > 0 and rotationalDifference < math.pi):
                 self.rotate_cw()
             elif(rotationalDifference > 0 and rotationalDifference >= math.pi):
-                    rotationalDifference >= math.pi):
                 self.rotate_ccw()
             elif(rotationalDifference < 0 and rotationalDifference > -math.pi):
-                    rotationalDifference > -math.pi):
                 self.rotate_ccw()
             elif(rotationalDifference < 0 and rotationalDifference <= -math.pi):
-                   rotationalDifference <= -math.pi):
                 self.rotate_cw()
         # end: update wrt controller
 
@@ -390,7 +389,6 @@ def update():
 
 def render():
     screen.fill(colors['black'])
-            colors['white'])
     controller.draw()
     for robot in robots:
         robot.draw()
