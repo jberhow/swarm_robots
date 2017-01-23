@@ -237,7 +237,8 @@ class Robot():
 
 
         for sensor in self.sensors:
-            sensor.update(tuple(map(operator.add, self.rect.center, (self.rect.height/2*math.cos(self.hangulation),-self.rect.height/2*math.sin(self.hangulation)))), self.hangulation)
+            sensor.update(tuple(map(operator.add, self.rect.center, (self.rect.height/2*math.cos(self.hangulation),
+                -self.rect.height/2*math.sin(self.hangulation)))), self.hangulation)
 
 
     def rotate_ccw(self):
@@ -308,10 +309,13 @@ class IR_Sensor():
     def update(self, position, direction):
         self.position = position
         self.direction = direction
-        outerPosition = tuple(map(operator.add, position, (20*math.cos(direction+self.initialDirection),-20*math.sin(direction+self.initialDirection))))
+        outerPosition = tuple(map(operator.add, position, (20*math.cos(direction+self.initialDirection),
+            -20*math.sin(direction+self.initialDirection))))
         points = []
-        points.append(tuple(map(operator.add, (-4*math.sin(direction+self.initialDirection), -4*math.cos(direction+self.initialDirection)), outerPosition)))
-        points.append(tuple(map(operator.add, (4*math.sin(direction+self.initialDirection), 4*math.cos(direction+self.initialDirection)), outerPosition)))
+        points.append(tuple(map(operator.add, (-4*math.sin(direction+self.initialDirection), 
+            -4*math.cos(direction+self.initialDirection)), outerPosition)))
+        points.append(tuple(map(operator.add, (4*math.sin(direction+self.initialDirection), 
+            4*math.cos(direction+self.initialDirection)), outerPosition)))
         points.append(tuple(map(operator.add, self.originalPoints[2], position)))
         self.points = points
         if(self.rect.colliderect(obstacles[0].rect)):
