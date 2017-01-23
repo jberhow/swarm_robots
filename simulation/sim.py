@@ -13,7 +13,7 @@ import operator
 pygame.init()
 pygame.key.set_repeat(20,20)
 
-size = width, height = 640, 480
+size = width, height = 800, 480
 
 colors = {
         'black': (0,0,0),
@@ -23,13 +23,34 @@ colors = {
         'blue': (0,0,255)
         }
 
+robots = []
+counter = 0
+
 screen = pygame.display.set_mode(size)
+
+cam_screen = pygame.Surface((160, 480))
+
 velocity = velocityX, velocityY = 1, 1
 automaticMode = False
 
+class Camera():
+
+    def __init__(self):
+        self.mini_screen = pygame.Surface((160, 50))
+         
+    def draw(self, angle, distance, n):
+        # y = mx + b convering angles to x-axis
+        start_point = 80*angle/math.pi+80
+        # height will be 50 pixels tall
+        end_point = -distance / 8. + 50
+        pygame.draw.line(self.mini_screen, colors['white'],
+                (int(start_point), 50),
+                (int(start_point), 50 - int(end_point)))
+        cam_screen.blit(self.mini_screen, (0, n*50))
+
 class Controller():
 
-    def __init__(self, avel=math.pi/24, pos=(int(0.9*width), 
+    def __init__(self, avel=math.pi/24, pos=(int(0.9*640), 
             int(0.9*height)), 
             radius=int(0.09*height)):
         self.avel = avel
@@ -74,14 +95,15 @@ class Controller():
 # TODO: see how to make the code more elegant, it's getting rowdy
 class Robot():
 
-    def __init__(self, pos, velx, avel, controller, size=(10, 10), 
+    def __init__(self, pos, vel, avel, controller, n, size=(10, 10), 
             color=colors['green']):
         self.pos = pos
         self.size = size
         self.color = color
-        self.vel = velx
+        self.vel = vel
         self.avel = avel
         self.controller = controller
+        self.n = n
         self.rect = pygame.draw.rect(screen, 
                 self.color, (self.pos, self.size))
 
@@ -112,6 +134,9 @@ class Robot():
         self.forcedRotationalDifference = 0
         self.forcedTranslationalDifference = 0
 
+        self.camera = Camera()
+                
+
     def draw(self):
         pygame.draw.rect(screen, self.color, self.rect)
 
@@ -119,10 +144,27 @@ class Robot():
             sensor.draw()
 
         self.direction = pygame.draw.line(screen,
+
                 colors['blue'],self.rect.center, (
-                    self.rect.center[0] + 20*math.cos(self.hangulation), 
-                    self.rect.center[1] - 20*math.sin(self.hangulation)), 
+                self.rect.center[0] + 20*math.cos(self.hangulation), 
+                self.rect.center[1] - 20*math.sin(self.hangulation)),
                 2)
+        
+        screen.blit(cam_screen, (640, 0))
+        # camera rendering
+        # cam_screen.fill(colors['black'])
+        for robot in robots:
+            if (robot == self):
+                pass
+            else:
+                angle = math.atan2((self.rect.center[1] - 
+                    robot.rect.center[1]),(self.rect.center[0] -
+                        robot.rect.center[0]))
+                distance = math.fabs(math.sqrt((self.rect.center[0] -
+                    robot.rect.center[0])**2 + (self.rect.center[1] -
+                        robot.rect.center[1])**2))
+                self.camera.draw(angle, distance, self.n)
+
 
 
     def update(self):
@@ -180,6 +222,7 @@ class Robot():
 
         for sensor in self.sensors:
             sensor.update(tuple(map(operator.add, self.rect.center, (self.rect.height/2*math.cos(self.hangulation),-self.rect.height/2*math.sin(self.hangulation)))), self.hangulation)
+
 
     def rotate_ccw(self):
         self.hangulation = self.hangulation + (self.avel * (time.time() - self.currTimeA))
@@ -283,9 +326,11 @@ obstacles = []
 obstacles.append(Obstacle((10, 200), (200, 200), colors['green']))
 
 
+
 # TODO: controls need to be handled in update()
 def update():
     global automaticMode
+    global counter
 
     # close out if quit button is pressed on window
     if (pygame.event.peek(pygame.QUIT)):
@@ -296,7 +341,10 @@ def update():
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             robots.append(Robot((pygame.mouse.get_pos()[0],
-                pygame.mouse.get_pos()[1]),45,math.pi/2, controller))
+                pygame.mouse.get_pos()[1]),45,math.pi/2,
+                controller, counter))
+            counter = counter + 1
+
         if event.type == pygame.KEYDOWN: 
             if event.key == pygame.K_LEFT:
                 controller.rotate_ccw()
@@ -324,14 +372,12 @@ def update():
 
 def render():
     screen.fill(colors['black'])
-
     controller.draw()
     for robot in robots:
         robot.draw()
     for obstacle in obstacles:
         obstacle.draw()
     pygame.display.flip()
-
 
 # TODO: maybe make a Game object that gets instantiated in __main__
 while 1:
