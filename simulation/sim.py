@@ -40,7 +40,7 @@ class Camera():
         self.min = 9999 # for returning closest blob
          
     def draw(self, angle, distance, n):
-        self.mini_screen.fill(colors['black'])
+        #self.mini_screen.fill(colors['black'])
         # y = mx + b convering angles to x-axis
         start_point = 80*angle/math.pi+80
         # height will be 50 pixels tall
@@ -167,6 +167,7 @@ class Robot():
         screen.blit(cam_screen, (640, 0))
         # camera rendering
         # cam_screen.fill(colors['black'])
+        self.camera.mini_screen.fill(colors['black'])
         for robot in robots:
             if (robot == self):
                 pass
