@@ -184,9 +184,8 @@ class Robot():
 
 
     def update(self):
-        print("Forced Rotational " + str(self.forcedRotationalDifference))
-        print("Forced Translational " + str(self.forcedTranslationalDifference))
-        if (self.hangulation >= math.pi):
+        print self.hangulation
+        if (self.hangulation > math.pi):
             self.hangulation = -math.pi
         if (self.hangulation < -math.pi):
             self.hangulation = math.pi
@@ -207,12 +206,12 @@ class Robot():
             elif (self.sensors[2].obstacleDetected and self.sensors[1].obstacleDetected):
                 self.forcedRotationalDifference = 25 * (math.pi / 180)
                 self.forcedTranslationalDifference = 50
-            elif(self.sensors[0].obstacleDetected or self.sensors[2].obstacleDetected):
-                rotationalDifference = 0
+            #elif(self.sensors[0].obstacleDetected or self.sensors[2].obstacleDetected):
+            #    rotationalDifference = 0
 
             rotationalDifference = self.forcedRotationalDifference
 
-         #   return
+
         if(abs(rotationalDifference) < math.pi/360 or (self.forcedTranslationalDifference > 0 and self.forcedRotationalDifference == 0)):
             self.forcedRotationalDifference = 0
             self.currTimeA = time.time()
@@ -319,7 +318,7 @@ class IR_Sensor():
             4*math.cos(direction+self.initialDirection)), outerPosition)))
         points.append(tuple(map(operator.add, self.originalPoints[2], position)))
         self.points = points
-
+        if(self.rect.collidelist(obstacleRects) != -1):
         for obstacle in obstacles:
             if(self.rect.colliderect(obstacle.rect)):
                 self.color = colors['red']
@@ -346,10 +345,11 @@ class Obstacle():
 controller = Controller()
 robots = []
 obstacles = []
-obstacles.append(Obstacle((10, 100), (250, 200), colors['green']))
-#obstacles.append(Obstacle((10, 50), (250, 100), colors['red']))
-
-
+obstacles.append(Obstacle((10, 100), (200, 30), colors['green']))
+obstacles.append(Obstacle((10, 100), (200, 200), colors['green']))
+obstacleRects = []
+for obstacle in obstacles:
+    obstacleRects.append(obstacle.rect)
 
 # TODO: controls need to be handled in update()
 def update():
