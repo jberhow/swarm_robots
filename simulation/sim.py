@@ -319,13 +319,15 @@ class IR_Sensor():
             4*math.cos(direction+self.initialDirection)), outerPosition)))
         points.append(tuple(map(operator.add, self.originalPoints[2], position)))
         self.points = points
-        if(self.rect.colliderect(obstacles[0].rect)):
-            self.color = colors['red']
-            self.obstacleDetected = True
-        else:
-            self.color = colors['white']
-            self.obstacleDetected = False
 
+        for obstacle in obstacles:
+            if(self.rect.colliderect(obstacle.rect)):
+                self.color = colors['red']
+                self.obstacleDetected = True
+            else:
+                self.color = colors['white']
+                self.obstacleDetected = False
+                    
     def draw(self):
         self.rect = pygame.draw.polygon(screen, self.color, (self.points[0], self.points[1], self.points[2]))
 
@@ -344,7 +346,8 @@ class Obstacle():
 controller = Controller()
 robots = []
 obstacles = []
-obstacles.append(Obstacle((10, 200), (200, 200), colors['green']))
+obstacles.append(Obstacle((10, 100), (250, 200), colors['green']))
+#obstacles.append(Obstacle((10, 50), (250, 100), colors['red']))
 
 
 
