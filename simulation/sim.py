@@ -35,27 +35,55 @@ automaticMode = False
 
 class Camera():
 
-    def __init__(self):
+    def __init__(self, myrobot):
         self.mini_screen = pygame.Surface((160, 50))
-        self.min = 9999 # for returning closest blob
-         
-    def draw(self, angle, distance, n):
-        #self.mini_screen.fill(colors['black'])
-        # y = mx + b convering angles to x-axis
-        start_point = 80*angle/math.pi+80
-        # height will be 50 pixels tall
-        end_point = -distance / 8. + 50
-        pygame.draw.rect(self.mini_screen, colors['green'],
-                ( (0, 0),(160, 50) ), 2)
-        if (distance <= self.min):
-            self.min = distance
+        self.hanglitude_list = []
+        self.myrobot = myrobot
+        self.hanglitude_list = []
+        
+    def update(self):
+        self.hanglitude_list = robots[:]
+        for robot in robots:
+            if (robot == self.myrobot):
+                pass
+            else:
+                angle = math.atan2((self.myrobot.rect.center[1] - 
+                    robot.rect.center[1]),(self.myrobot.rect.center[0] -
+                        robot.rect.center[0]))
+                distance = math.fabs(math.sqrt((self.myrobot.rect.center[0] -
+                    robot.rect.center[0])**2 + (self.myrobot.rect.center[1] -
+                        robot.rect.center[1])**2))
+                self.hanglitude_list[robot.n] = (angle, distance)
+
+    def draw(self):
+        self.mini_screen.fill(colors['black'])
+
+        if self.hanglitude_list:
+            if not isinstance(self.hanglitude_list[0], Robot):
+                closest = self.hanglitude_list[0]
+            else:
+                closest = (9999, 9999)
+            for hanglitude in self.hanglitude_list:
+                if not isinstance(hanglitude, Robot):
+                    if (hanglitude[1] < closest[1]):
+                        closest = hanglitude
+                    # y = mx + b convering angles to x-axis
+                    start_point = 80*hanglitude[0]/math.pi+80
+                    # height will be 50 pixels tall
+                    end_point = -hanglitude[1] / 8. + 50
+                    pygame.draw.rect(self.mini_screen, colors['green'],
+                            ( (0, 0),(160, 50) ), 2)
+                    pygame.draw.line(self.mini_screen, colors['white'],
+                            (int(start_point), 50),
+                            (int(start_point), 50 - int(end_point)))
+
+            start_point = 80*closest[0]/math.pi+80
+            end_point = -closest[1] / 8. + 50
             pygame.draw.line(self.mini_screen, colors['red'],
                     (int(start_point), 50),
                     (int(start_point), 50 - int(end_point)))
-        else:
-            pygame.draw.line(self.mini_screen, colors['white'],
-                    (int(start_point), 50),
-                    (int(start_point), 50 - int(end_point)))
+            
+            cam_screen.blit(self.mini_screen, (0, self.myrobot.n*50))
 
 
 class Controller():
@@ -148,7 +176,7 @@ class Robot():
         self.forcedRotationalDifference = 0
         self.forcedTranslationalDifference = 0
 
-        self.camera = Camera()
+        self.camera = Camera(self)
                 
 
     def draw(self):
@@ -167,20 +195,8 @@ class Robot():
         screen.blit(cam_screen, (640, 0))
         # camera rendering
         # cam_screen.fill(colors['black'])
-        self.camera.mini_screen.fill(colors['black'])
-        for robot in robots:
-            if (robot == self):
-                pass
-            else:
-                angle = math.atan2((self.rect.center[1] - 
-                    robot.rect.center[1]),(self.rect.center[0] -
-                        robot.rect.center[0]))
-                distance = math.fabs(math.sqrt((self.rect.center[0] -
-                    robot.rect.center[0])**2 + (self.rect.center[1] -
-                        robot.rect.center[1])**2))
-                self.camera.draw(angle, distance, self.n)
-        
-        cam_screen.blit(self.camera.mini_screen, (0, self.n*50))
+        #self.camera.mini_screen.fill(colors['black'])
+        self.camera.draw()
 
 
     def update(self):
@@ -190,6 +206,7 @@ class Robot():
         if (self.hangulation < -math.pi):
             self.hangulation = math.pi
 
+        # sensor update
         if (not self.sensors[0].obstacleDetected and not self.sensors[1].obstacleDetected
                 and not self.sensors[2].obstacleDetected):
             if(self.forcedRotationalDifference == 0):
@@ -239,6 +256,8 @@ class Robot():
         for sensor in self.sensors:
             sensor.update(tuple(map(operator.add, self.rect.center, (self.rect.height/2*math.cos(self.hangulation),
                 -self.rect.height/2*math.sin(self.hangulation)))), self.hangulation)
+
+        self.camera.update()
 
 
     def rotate_ccw(self):
@@ -319,13 +338,11 @@ class IR_Sensor():
         points.append(tuple(map(operator.add, self.originalPoints[2], position)))
         self.points = points
         if(self.rect.collidelist(obstacleRects) != -1):
-        for obstacle in obstacles:
-            if(self.rect.colliderect(obstacle.rect)):
-                self.color = colors['red']
-                self.obstacleDetected = True
-            else:
-                self.color = colors['white']
-                self.obstacleDetected = False
+            self.color = colors['red']
+            self.obstacleDetected = True
+        else:
+            self.color = colors['white']
+            self.obstacleDetected = False
                     
     def draw(self):
         self.rect = pygame.draw.polygon(screen, self.color, (self.points[0], self.points[1], self.points[2]))
@@ -348,6 +365,7 @@ obstacles = []
 obstacles.append(Obstacle((10, 100), (200, 30), colors['green']))
 obstacles.append(Obstacle((10, 100), (200, 200), colors['green']))
 obstacleRects = []
+
 for obstacle in obstacles:
     obstacleRects.append(obstacle.rect)
 
