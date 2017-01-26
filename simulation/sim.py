@@ -8,6 +8,8 @@ import sys
 import time
 import math
 import operator
+import random
+import numpy
 
 
 pygame.init()
@@ -130,23 +132,24 @@ class Robot():
         self.sensors.append(IR_Sensor(tuple(map(operator.add, self.rect.center,
                                                 (self.rect.height/2*math.cos(self.hangulation),
                                                  -self.rect.height/2*math.sin(self.hangulation)))),
-                                      -(60 * (math.pi / 180))))
+                                      -(60 * (math.pi / 180)), self))
 
         self.sensors.append(IR_Sensor(tuple(map(operator.add, self.rect.center,
                                                 (self.rect.height / 2 * math.cos(self.hangulation),
                                                  -self.rect.height / 2 * math.sin(self.hangulation)))),
-                                      0))
+                                      0, self))
 
         self.sensors.append(IR_Sensor(tuple(map(operator.add, self.rect.center,
                                                 (self.rect.height / 2 * math.cos(self.hangulation),
                                                  -self.rect.height / 2 * math.sin(self.hangulation)))),
-                                      (60 * (math.pi / 180))))
+                                      (60 * (math.pi / 180)), self))
 
         self.currTimeX = time.time()
         self.currTimeY = time.time()
         self.currTimeA = time.time()
-        self.forcedRotationalDifference = 0
-        self.forcedTranslationalDifference = 0
+        self.irRotationalDifference = 0         #A forced rotation with highest priority given when ir sensor detects an obstacle
+        self.cameraRotationalDifference = 0     #A forced rotation with priority below the ir sensor for the camera
+        self.forcedTranslationalDifference = 0  #A forced translational movement set by any sensor
 
         self.camera = Camera()
                 
@@ -184,36 +187,51 @@ class Robot():
 
 
     def update(self):
-        print self.hangulation
+        #Keep robot angle withhin -pi to pi
         if (self.hangulation > math.pi):
             self.hangulation = -math.pi
         if (self.hangulation < -math.pi):
             self.hangulation = math.pi
 
+        #If no IR sensors have detected anything
+        #Follow the controller if there is no forced rotational movement
         if (not self.sensors[0].obstacleDetected and not self.sensors[1].obstacleDetected
                 and not self.sensors[2].obstacleDetected):
-            if(self.forcedRotationalDifference == 0):
-                rotationalDifference = self.hangulation - controller.hangulation
+
+            #TODO: Set camera rotational difference if closest robot has changed (positive = cw,negative = ccw)
+            #if():
+            #    cameraRotationalDifference =
+            #    forcedTranslationalDistance = You can set this if you need it to move after rotating
+
+            if(self.irRotationalDifference != 0):
+                rotationalDifference = self.irRotationalDifference
+                self.cameraRotationalDifference = 0
+            elif(self.cameraRotationalDifference != 0):
+                rotationalDifference = self.cameraRotationalDifference
             else:
-                rotationalDifference = self.forcedRotationalDifference
+                rotationalDifference = self.hangulation - controller.hangulation
+
+        #If the middle sensor and an outer sensor both detect an obstacle then rotate and move away from obstacle using
+        #gaussian distribution so that robot do not continually collide into each other
         else:
             if(self.sensors[0].obstacleDetected and self.sensors[1].obstacleDetected):
-                self.forcedRotationalDifference = -25 * (math.pi / 180)
-                self.forcedTranslationalDifference = 50
+                self.irRotationalDifference = -random.gauss(25, 5) * (math.pi / 180)
+                self.forcedTranslationalDifference = random.gauss(40, 10)
             elif (self.sensors[1].obstacleDetected):
-                self.forcedRotationalDifference = 25 * (math.pi / 180)
-                self.forcedTranslationalDifference = 50
+                self.irRotationalDifference = random.gauss(25, 5) * (math.pi / 180)
+                self.forcedTranslationalDifference = random.gauss(40, 10)
             elif (self.sensors[2].obstacleDetected and self.sensors[1].obstacleDetected):
-                self.forcedRotationalDifference = 25 * (math.pi / 180)
-                self.forcedTranslationalDifference = 50
+                self.irRotationalDifference = random.gauss(25, 5) * (math.pi / 180)
+                self.forcedTranslationalDifference = random.gauss(40, 10)
             #elif(self.sensors[0].obstacleDetected or self.sensors[2].obstacleDetected):
             #    rotationalDifference = 0
 
-            rotationalDifference = self.forcedRotationalDifference
+            rotationalDifference = self.irRotationalDifference
 
-
-        if(abs(rotationalDifference) < math.pi/360 or (self.forcedTranslationalDifference > 0 and self.forcedRotationalDifference == 0)):
-            self.forcedRotationalDifference = 0
+        #If no more rotation is required or there is force translational movement, move the robot
+        if(abs(rotationalDifference) < math.pi/360 or (self.forcedTranslationalDifference > 0 and self.irRotationalDifference == 0 and self.cameraRotationalDifference == 0)):
+            self.irRotationalDifference = 0
+            self.cameraRotationalDifference = 0
             self.currTimeA = time.time()
             if (pygame.key.get_pressed()[pygame.K_UP] or automaticMode):
                 self.move_forward()
@@ -223,6 +241,7 @@ class Robot():
                 self.currTimeX = time.time()
                 self.currTimeY = time.time()
         else:
+            #Rotate depending on the direction needed to rotate
             self.currTimeX = time.time()
             self.currTimeY = time.time()
             if(rotationalDifference > 0 and rotationalDifference < math.pi):
@@ -233,7 +252,6 @@ class Robot():
                 self.rotate_ccw()
             elif(rotationalDifference < 0 and rotationalDifference <= -math.pi):
                 self.rotate_cw()
-        # end: update wrt controller
 
 
         for sensor in self.sensors:
@@ -243,18 +261,26 @@ class Robot():
 
     def rotate_ccw(self):
         self.hangulation = self.hangulation + (self.avel * (time.time() - self.currTimeA))
-        if(self.forcedRotationalDifference < 0):
-            self.forcedRotationalDifference += (self.avel * (time.time() - self.currTimeA))
-            if(self.forcedRotationalDifference > 0):
-                self.forcedRotationalDifference = 0
+        if(self.irRotationalDifference < 0):
+            self.irRotationalDifference += (self.avel * (time.time() - self.currTimeA))
+            if(self.irRotationalDifference > 0):
+                self.irRotationalDifference = 0
+        if(self.cameraRotationalDifference < 0):
+            self.cameraRotationalDifference += (self.avel * (time.time() - self.currTimeA))
+            if(self.cameraRotationalDifference > 0):
+                self.cameraRotationalDifference = 0
         self.currTimeA = time.time()
 
     def rotate_cw(self):
         self.hangulation = self.hangulation - (self.avel * (time.time() - self.currTimeA))
-        if (self.forcedRotationalDifference > 0):
-            self.forcedRotationalDifference -= (self.avel * (time.time() - self.currTimeA))
-            if (self.forcedRotationalDifference < 0):
-                self.forcedRotationalDifference = 0
+        if (self.irRotationalDifference > 0):
+            self.irRotationalDifference -= (self.avel * (time.time() - self.currTimeA))
+            if (self.irRotationalDifference < 0):
+                self.irRotationalDifference = 0
+        if (self.cameraRotationalDifference > 0):
+            self.cameraRotationalDifference -= (self.avel * (time.time() - self.currTimeA))
+            if (self.cameraRotationalDifference < 0):
+                self.cameraRotationalDifference = 0
         self.currTimeA = time.time()
 
     def move_backward(self):
@@ -278,6 +304,7 @@ class Robot():
                     self.forcedTranslationalDifference = 0
             self.currTimeX = time.time()
 
+        #
         if (abs(self.vel * (time.time() - self.currTimeY) * math.sin(self.hangulation)) > 1):
             self.rect.move_ip(0, -self.vel * (time.time() - self.currTimeY) * math.sin(self.hangulation))
             self.direction.move_ip(0, -self.vel * (time.time() - self.currTimeY) * math.sin(self.hangulation))
@@ -289,7 +316,7 @@ class Robot():
 
 class IR_Sensor():
 
-    def __init__(self, position, initialDirection, topLeft=(-4,-20), topRight=(4,-20), bottom=(0, 0), color=colors['white']):
+    def __init__(self, position, initialDirection, robot, topLeft=(-4,-20), topRight=(4,-20), bottom=(0, 0), color=colors['white']):
         self.color = color
         self.position = position
         self.initialDirection = initialDirection
@@ -305,25 +332,36 @@ class IR_Sensor():
         self.points.append(tuple(map(operator.add, bottom, position)))
         self.rect = pygame.draw.polygon(screen, color, (self.points[0], self.points[1], self.points[2]))
         self.obstacleDetected = False
+        self.robot = robot
 
     def update(self, position, direction):
         self.position = position
         self.direction = direction
+        #Find the coordinates of the outer point of the triangle pointing radially away from the robot
         outerPosition = tuple(map(operator.add, position, (20*math.cos(direction+self.initialDirection),
             -20*math.sin(direction+self.initialDirection))))
         points = []
+        #Update the 3 points for the ir sensor's triangle
         points.append(tuple(map(operator.add, (-4*math.sin(direction+self.initialDirection), 
             -4*math.cos(direction+self.initialDirection)), outerPosition)))
         points.append(tuple(map(operator.add, (4*math.sin(direction+self.initialDirection), 
             4*math.cos(direction+self.initialDirection)), outerPosition)))
         points.append(tuple(map(operator.add, self.originalPoints[2], position)))
         self.points = points
+        #Check if the ir sensor is colliding with obstacles or other robots
         if(self.rect.collidelist(obstacleRects) != -1):
             self.color = colors['red']
             self.obstacleDetected = True
         else:
             self.color = colors['white']
             self.obstacleDetected = False
+            #Check robots separately so to avoid detected robot that ir sensor is attached to
+            for robot in robots:
+                if(self.robot != robot and self.rect.colliderect(robot.rect)):
+                    self.color = colors['red']
+                    self.obstacleDetected = True
+                    break
+
 
     def draw(self):
         self.rect = pygame.draw.polygon(screen, self.color, (self.points[0], self.points[1], self.points[2]))
@@ -342,6 +380,7 @@ class Obstacle():
         
 controller = Controller()
 robots = []
+
 obstacles = []
 obstacles.append(Obstacle((10, 100), (200, 30), colors['green']))
 obstacles.append(Obstacle((10, 100), (200, 200), colors['green']))
