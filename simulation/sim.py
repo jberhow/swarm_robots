@@ -55,7 +55,8 @@ class Camera():
                 distance = math.fabs(math.sqrt((self.myrobot.rect.center[0] -
                     robot.rect.center[0])**2 + (self.myrobot.rect.center[1] -
                         robot.rect.center[1])**2))
-                self.hanglitude_list[robot.n] = (angle, distance)
+                self.hanglitude_list[robot.n] = (angle +
+                        self.myrobot.hangulation, distance)
 
     def draw(self):
         self.mini_screen.fill(colors['black'])
@@ -175,6 +176,7 @@ class Robot():
         self.currTimeX = time.time()
         self.currTimeY = time.time()
         self.currTimeA = time.time()
+
         self.irRotationalDifference = 0         #A forced rotation with highest priority given when ir sensor detects an obstacle
         self.cameraRotationalDifference = 0     #A forced rotation with priority below the ir sensor for the camera
         self.forcedTranslationalDifference = 0  #A forced translational movement set by any sensor
