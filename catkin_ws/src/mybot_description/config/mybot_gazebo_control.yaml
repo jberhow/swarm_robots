@@ -1,0 +1,14 @@
+mybot:
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  front_left_axle:
+    type: effort_controllers/JointEffortController
+    joint: front_left_axle
+    pid: {p: 1.0, i: 0.01, d: 0.0}
+
+  back_right_axle:
+    type: effort_controllers/JointEffortController
+    joint: back_right_axle
+    pid: {p: 1.0, i: 0.01, d: 0.0}

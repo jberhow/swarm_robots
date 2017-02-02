@@ -1,0 +1,8 @@
+prefix=/home/jeff/catkin_ws/devel
+
+Name: my_pkg2
+Description: Description of my_pkg2
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/jeff/catkin_ws/devel/lib 
+Requires: 
