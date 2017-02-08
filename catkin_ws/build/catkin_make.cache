@@ -1,0 +1,2 @@
+diff_wheeled_robot_control:diff_wheeled_robot_gazebo:mastering_ros_robot_description_pkg:my_pkg:my_pkg2:my_pkg3:mybot_control:mybot_description:mybot_gazebo:seven_dof_arm_gazebo:talkpi
+-DCATKIN_DEVEL_PREFIX=/home/jeff/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/jeff/catkin_ws/install -G Unix Makefiles

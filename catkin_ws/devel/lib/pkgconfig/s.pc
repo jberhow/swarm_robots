@@ -1,0 +1,8 @@
+prefix=/home/jeff/catkin_ws/devel
+
+Name: s
+Description: Description of s
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/jeff/catkin_ws/devel/lib 
+Requires: 

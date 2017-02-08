@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jeff/catkin_ws/src/my_pkg/vel_pub.cpp
+ros/ros.h
+/home/jeff/catkin_ws/src/my_pkg/ros/ros.h
+geometry_msgs/Twist.h
+/home/jeff/catkin_ws/src/my_pkg/geometry_msgs/Twist.h
+
