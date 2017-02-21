@@ -2,9 +2,9 @@ long irLeftDistance = 0;  // variable to store the value coming from the sensor
 long irMiddleDistance = 0;  // variable to store the value coming from the sensor
 long irRightDistance = 0;  // variable to store the value coming from the sensor
 
-int irLeftPin = A0;
-int irMiddlePin = A1;
-int irRightPin = A2;
+#define IR_LEFT_PIN     8
+#define IR_MIDDLE_PIN   9
+#define IR_RIGHT_PIN    10
 
 int counter = 0;
 
@@ -39,6 +39,43 @@ void setup()
 
 void loop() 
 { 
+  irLeftDistance = ((irLeftDistance * 99) + ((long)analogRead(IR_LEFT_PIN)) * 1)/100;
+  irMiddleDistance = ((irMiddleDistance * 99) + ((long)analogRead(IR_MIDDLE_PIN)) * 1)/100;
+  irRightDistance = ((irRightDistance * 99) + ((long)analogRead(IR_RIGHT_PIN)) * 1)/100;
+
+  if(irMiddleDistance > 180)
+  {
+    if(irLeftDistance > 180)
+    {
+      rotateRight();
+      delay(1000);
+      setMotorsForward();
+    }
+    else if(irRightDistance > 180)
+    {
+      rotateLeft();
+      delay(1000);
+      setMotorsForward();
+    }
+    else
+    {
+      rotateLeft();
+      delay(3000);
+      setMotorsForward();
+    }
+  }
+  else if(irLeftDistance > 230)
+  {
+    rotateRight();
+    delay(1000);
+    setMotorsForward();
+  }
+  else if(irRightDistance > 230)
+  {
+    rotateLeft();
+    delay(1000);
+    setMotorsForward();
+  }
 }
 
 void setupStepperMotors()
@@ -59,7 +96,7 @@ void setupStepperMotors()
   digitalWrite(LEFT_MOTOR_DIR, LOW);
   digitalWrite(RIGHT_MOTOR_DIR, HIGH);
 
-  //Z Step
+   //Z Step
   TCCR0A = (1 << COM0B1) | (1 << WGM01) | (1 << WGM00);
   TCCR0B = (1 << WGM02) | (1 << CS02) | (1 << CS00);
   OCR0A = 100;
@@ -70,6 +107,9 @@ void setupStepperMotors()
   TCCR3B = (1 << WGM33) | (1 << WGM32) | (1 << CS32) | (1 << CS30);
   OCR3A = 100;
   OCR3B = 50;
+
+  TCNT0 = 0;
+  TCNT3 = 0;
 
   enableMotors();
 }
@@ -87,18 +127,22 @@ void disableMotors()
 void setMotorsForward()
 {
   //Set directions forward
-  digitalWrite(LEFT_MOTOR_PWM, LOW);
-  digitalWrite(RIGHT_MOTOR_PWM, HIGH);
+  digitalWrite(LEFT_MOTOR_DIR, LOW);
+  digitalWrite(RIGHT_MOTOR_DIR, HIGH);
 }
 
 void rotateLeft()
 {
-  
+  //Set directions forward
+  digitalWrite(LEFT_MOTOR_DIR, HIGH);
+  digitalWrite(RIGHT_MOTOR_DIR, HIGH);
 }
 
 void rotateRight()
 {
-
+  //Set directions forward
+  digitalWrite(LEFT_MOTOR_DIR, LOW);
+  digitalWrite(RIGHT_MOTOR_DIR, LOW);
 }
 
 /*
