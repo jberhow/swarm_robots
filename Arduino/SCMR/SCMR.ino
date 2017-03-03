@@ -1,3 +1,5 @@
+#include "TimerOne.h"
+
 long irLeftDistance = 0;  // variable to store the value coming from the sensor
 long irMiddleDistance = 0;  // variable to store the value coming from the sensor
 long irRightDistance = 0;  // variable to store the value coming from the sensor
@@ -26,6 +28,9 @@ int16_t rotationalDifference;
 
 uint8_t enableMotorsFlag;
 
+volatile uint8_t rotationDelay;
+volatile uint8_t irRotation;
+
 #define LEFT_MOTOR_PWM 2
 #define LEFT_MOTOR_DIR 5
 #define RIGHT_MOTOR_PWM 4
@@ -37,22 +42,32 @@ void setup()
   Serial.begin(115200);
 
   setupStepperMotors();
+
+  Timer1.initialize(500000);
+  Timer1.attachInterrupt(halfSecondTimer);
+  rotationDelay = 0;
+  robotSpeed = 0;
+  currentRobotSpeed = 0;
+  irRotation = FALSE;
 }
 
 void loop() 
 {
   rotationalDifference = currentRotation - requiredRotation;
-   
-  if(rotationalDifference > 5 and rotationalDifference < 180)
-      rotateRight();
-  else if(rotationalDifference > 5 and rotationalDifference >= 180)
-      rotateLeft();
-  else if(rotationalDifference < -5 and rotationalDifference > -180)
-      rotateLeft();
-  else if(rotationalDifference < -5 and rotationalDifference <= -180)
-      rotateRight();
-  else
-      setMotorsForward();
+
+  if(irRotation == FALSE)
+  {
+    if(rotationalDifference > 5 and rotationalDifference < 180)
+        rotateRight();
+    else if(rotationalDifference > 5 and rotationalDifference >= 180)
+        rotateLeft();
+    else if(rotationalDifference < -5 and rotationalDifference > -180)
+        rotateLeft();
+    else if(rotationalDifference < -5 and rotationalDifference <= -180)
+        rotateRight();
+    else
+        setMotorsForward();
+  }
 
   if(currentRobotSpeed != robotSpeed)
   { 
@@ -84,33 +99,48 @@ void loop()
     if(irLeftDistance > 180)
     {
       rotateRight();
-      delay(1000);
-      setMotorsForward();
+      rotationDelay = 2;
+      irRotation = TRUE;
+      TCNT1 = 0;
+      /*delay(1000);
+      setMotorsForward();*/
     }
     else if(irRightDistance > 180)
     {
       rotateLeft();
-      delay(1000);
-      setMotorsForward();
+      rotationDelay = 2;
+      irRotation = TRUE;
+      TCNT1 = 0;
+      /*delay(1000);
+      setMotorsForward();*/
     }
     else
     {
       rotateLeft();
-      delay(3000);
-      setMotorsForward();
+      rotationDelay = 6;
+      irRotation = TRUE;
+      TCNT1 = 0;
+      /*delay(3000);
+      setMotorsForward();*/
     }
   }
   else if(irLeftDistance > 230)
   {
     rotateRight();
-    delay(1000);
-    setMotorsForward();
+    rotationDelay = 6;
+    irRotation = TRUE;
+    TCNT1 = 0;
+    /*delay(1000);
+    setMotorsForward();*/
   }
   else if(irRightDistance > 230)
   {
     rotateLeft();
-    delay(1000);
-    setMotorsForward();
+    rotationDelay = 6;
+    irRotation = TRUE;
+    TCNT1 = 0;
+    /*delay(1000);
+    setMotorsForward();*/
   }
 }
 
@@ -183,6 +213,19 @@ void rotateRight()
   digitalWrite(RIGHT_MOTOR_DIR, LOW);
 }
 
+void halfSecondTimer()
+{
+  if(rotationDelay > 0)
+  {
+    rotationDelay--;
+  }
+  if(rotationDelay == 0 && irRotation == TRUE)
+  {
+    setMotorsForward();
+    irRotation = FALSE;
+  }
+}
+
 /*
   SerialEvent occurs whenever a new data comes in the
  hardware serial RX.  This routine is run between each
@@ -191,34 +234,45 @@ void rotateRight()
  */
 void serialEvent() 
 {
-  while (Serial.available())
+  char data;
+  if(!Serial.available())
+    return;
+    
+  do
   {
-    char data = (char)Serial.read();
+    data = (char)Serial.read();
+    /*Serial.write(robotSpeed);
+    Serial.write(currentRobotSpeed);
+    Serial.write(currentRotation);
+    Serial.write(requiredRotation);*/
+  }while(data != DIRECTION_DATA_START_BYTE);
 
-    Serial.println(data);
-
+  serialDataPointer = 1;
+  serialData[0] = DIRECTION_DATA_START_BYTE;
+  
+  while (data != SERIAL_DATA_END_BYTE)
+  {
+    while(!Serial.available())
+    {}
+    data = (char)Serial.read();
+    
     //React to data type
     switch(data)
     {
       //Start bytes clear the buffer
       case DIRECTION_DATA_START_BYTE:
-        Serial.println("1");
         serialDataPointer = 1;
         serialData[0] = DIRECTION_DATA_START_BYTE;
         break;
  
       //End bytes perform an action on the received data
       case SERIAL_DATA_END_BYTE:
-        Serial.println("2");
-        Serial.println(serialData[0]);
         switch(serialData[0])
         {
           case DIRECTION_DATA_START_BYTE:
-            Serial.println("3");
             currentRotation = ((uint16_t)serialData[1] << 8) + ((uint16_t) serialData[2]);
             requiredRotation = ((uint16_t)serialData[3] << 8) + ((uint16_t) serialData[4]);
             robotSpeed = serialData[5];
-            Serial.println(robotSpeed);
             break;
 
           default:
@@ -234,6 +288,10 @@ void serialEvent()
           serialDataPointer++;
         break;
     }
-    
   }
+
+  /*while (Serial.available())
+  {
+    Serial.read();
+  }*/
 }
