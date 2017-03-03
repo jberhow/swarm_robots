@@ -230,7 +230,7 @@ class Robot():
                 rotationalDifference = self.hangulation - controller.hangulation
 
         #If the middle sensor and an outer sensor both detect an obstacle then rotate and move away from obstacle using
-        #gaussian distribution so that robot do not continually collide into each other
+        #gaussian distribution so that robots do not continually collide into each other
         else:
             if(self.sensors[0].obstacleDetected and self.sensors[1].obstacleDetected):
                 self.irRotationalDifference = -random.gauss(25, 5) * (math.pi / 180)

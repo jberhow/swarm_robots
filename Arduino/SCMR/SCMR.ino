@@ -34,7 +34,7 @@ uint8_t enableMotorsFlag;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   setupStepperMotors();
 }
@@ -149,7 +149,7 @@ void setupStepperMotors()
 
   currentRobotSpeed = 0;
 
-  enableMotors();
+  //enableMotors();
 }
 
 void enableMotors()
