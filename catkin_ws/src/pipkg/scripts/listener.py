@@ -7,16 +7,38 @@ import serial
 
 ser=serial.Serial('/dev/ttyACM0',115200)
 
-def callback(data):
+going_fwd = False
+turning_left = False
+turning_right = False
 
-	if ( data.linear.x > 3.5 ):
+def callback(data):
+	global going_fwd
+	global turning_left
+	global turning_right
+	if ( data.linear.x > 3.5 and not going_fwd ):
 		ser.write(bytearray(['D',0x00,0x00,0x00,0x00,100,'E']))
-	elif ( data.angular.z > 3.5 ):
+		going_fwd = True
+		turning_left = False
+		turning_right = False
+		print "forward"
+	elif ( data.angular.z > 3.5 and not turning_right ):
 		ser.write(bytearray(['D',100,100,0,0,100,'E']))
-	elif ( data.angular.z < -3.5 ):
+		going_fwd = False
+		turning_left = False
+		turning_right = True
+		print "right"
+	elif ( data.angular.z < -3.5 and not turning_left):
 		ser.write(bytearray(['D',0,0,100,100,100,'E']))
-	else:
+		going_fwd = False
+		turning_left = True
+		turning_right = False
+		print "left"
+	elif ( not ( data.linear.x > 3.5 ) and not ( data.angular.z > 3.5 ) and not ( data.angular.z < -3.5 ) and ( going_fwd or turning_left or turning_right ) ):
 		ser.write(bytearray(['D',0x00,0x00,0x00,0x00,0x00,'E']))
+		going_fwd = False
+		turning_left = False
+		turning_right = False
+		print "nothing"
 
 def listener():
 
