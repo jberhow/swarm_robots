@@ -1,0 +1,30 @@
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+
+import time
+import cv2
+
+import numpy as np
+
+camera = PiCamera()
+camera.resolution = (800, 600)
+camera.framerate = 60
+rawCapture = PiRGBArray(camera, size=(800, 600))
+
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+
+	image = np.asarray(frame, dtype="uint8")
+	hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+	
+	lower = np.array([80,50,50])
+	upper = np.array([180,255,255])
+
+	mask = cv2.inRange(hsv, lower, upper)
+	output = cv2.bitwise_and(image, image, mask=mask)
+
+	cv2.imshow("PiCam", np.hstack([output, image]))	
+
+	rawCapture.truncate(0)
+
+	if cv2.waitKey(1) & 0xFF == ord('q'):
+		break
