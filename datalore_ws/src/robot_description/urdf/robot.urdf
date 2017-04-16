@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot name="robot">
+  
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="1 4 1" />
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="body">
+    <visual>
+      <geometry>
+        <box size="1 4 1" />
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="main_link" type="fixed">
+    <parent link="body" />
+    <child link="base_link" />
+  </joint>
+
+</robot>
