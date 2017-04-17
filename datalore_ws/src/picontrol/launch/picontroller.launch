@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="joy" name="joy_node" type="joy_node" respawn="true">
+    <param name="dev" type="string" value="/dev/input/js0" />
+  </node>
+  <node pkg="picontrol" name="controller" type="controller.py" respawn="true"
+  />
+</launch>

@@ -1,0 +1,2 @@
+picontrol:robot_description
+-DCATKIN_DEVEL_PREFIX=/home/jeff/datalore_ws/devel -DCMAKE_INSTALL_PREFIX=/home/jeff/datalore_ws/install -G Unix Makefiles
