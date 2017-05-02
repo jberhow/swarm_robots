@@ -63,6 +63,14 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
 	cropped_img = image[50:260, 115:325]
 	cropped_output = output[50:260, 115:325]
+	cropped_hue = np.copy(cropped_output[:,:,0])
+	cropped_sat = np.copy(cropped_output[:,:,1])
+	cropped_val = np.copy(cropped_output[:,:,2])
+	cropped_gray = cv2.addWeighted(cropped_hue, 0.5, cropped_sat, 0.5, 0.0)
+	cropped_gray[cropped_gray > 0] = 255
+	
+	#cropped_val[cropped_val >= vmin] = 255
+	#cropped_val[cropped_val < vmin] = 0
         
         #summed_output = np.zeros([360,3])
         #for angle in range(0, 360):
@@ -75,26 +83,46 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         
 
         params = cv2.SimpleBlobDetector_Params()
-        #params.filterByCircularity = True
-        #params.minCircularity = 0.1
+        params.minThreshold = 0
+        params.maxThreshold = 255
+        params.minDistBetweenBlobs = 20
+        
+        params.filterByCircularity = True
+        params.minCircularity = 0
+        params.maxCircularity = 1
+        
         params.filterByArea = True
-        params.minArea = 100
+        params.minArea = 10
+        
+        params.filterByConvexity = True
+        params.minConvexity = 0
+        params.maxConvexity = 1
+        
+        params.filterByInertia = True
+        params.minInertiaRatio = 0
+        params.maxInertiaRatio = 1
+        
         params.minDistBetweenBlobs = 10
+        params.filterByColor = True
+        params.blobColor = 255
 
         #Inversion of value channel in hsv because blob detector looks for black blobs
-        val_inv = np.invert(cropped_output[:,:,2])
+        #val_inv = np.invert(cropped_gray)
         
         detector = cv2.SimpleBlobDetector_create(params)
-        keypoints = detector.detect(val_inv)
-        im_k = cv2.drawKeypoints(val_inv, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        keypoints = detector.detect(cropped_gray)
+        im_k = cv2.drawKeypoints(cropped_gray, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         cv2.imshow("Points", im_k)
 
         for keypoint in keypoints:
-                print "x: " + str(keypoint.pt[0])
-                print "y: " + str(keypoint.pt[1])
+                #print "x: " + str(keypoint.pt[0])
+                #print "y: " + str(keypoint.pt[1])
                 #print angle using center of circle
                 #subtract 90 degrees to make forward 0 degrees
-                print "angle: " + str(np.arctan2(keypoint.pt[1]-105,keypoint.pt[0]-105)*180/np.pi-90)
+                angle = np.arctan2(keypoint.pt[1]-105,keypoint.pt[0]-105)*180/np.pi-90
+                if(angle < -180):
+                        angle += 360
+                print "angle: " + str(angle) + " size: " + str(keypoint.size)
 
 
         #thresh = cv2.inRange(blur, lower, upper)
@@ -121,6 +149,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         #cv2.imshow("Frame", blur)
         #cv2.imshow('PiCamera',np.hstack([image, output]))
         cv2.imshow('PiCamera Cropped',np.hstack([cropped_img, cropped_output]))
+
+        cv2.imshow('HSV', cropped_gray)
+        
         key = cv2.waitKey(1) & 0xFF
  
 	# clear the stream in preparation for the next frame
