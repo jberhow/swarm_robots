@@ -39,14 +39,14 @@ volatile uint8_t irRotation;
 #define ENABLE_PIN 8
 
 /* Assign a unique ID to this sensor at the same time */
-Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
+//Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
 
 void setup() 
 {
   Serial.begin(115200);
 
   setupStepperMotors();
-  mag.begin();
+  //mag.begin();
 
   Timer1.initialize(500000);
   Timer1.attachInterrupt(halfSecondTimer);
@@ -59,8 +59,8 @@ void setup()
 void loop() 
 {
   /* Get a new sensor event */ 
-  sensors_event_t event; 
-  mag.getEvent(&event);
+  //sensors_event_t event; 
+  //mag.getEvent(&event);
  
   /* Display the results (magnetic vector values are in micro-Tesla (uT)) 
   Serial.print("X: "); Serial.print(event.magnetic.x); Serial.print("  ");
@@ -69,28 +69,28 @@ void loop()
 
   // Hold the module so that Z is pointing 'up' and you can measure the heading with x&y
   // Calculate heading when the magnetometer is level, then correct for signs of axis.
-  float heading = atan2(event.magnetic.y, event.magnetic.x);
+  //float heading = atan2(event.magnetic.y, event.magnetic.x);
   
   // Once you have your heading, you must then add your 'Declination Angle', which is the 'Error' of the magnetic field in your location.
   // Find yours here: http://www.magnetic-declination.com/
   // If you cannot find your Declination, comment out these two lines, your compass will be slightly off.
-  float declinationAngle = 0.20;
-  heading += declinationAngle;
+  //float declinationAngle = 0.20;
+  //heading += declinationAngle;
   
   // Correct for when signs are reversed. (2nd and 4th quadrant)
-  if(heading < 0)
-    heading += 2*PI;
+  //if(heading < 0)
+  //  heading += 2*PI;
     
   // Check for wrap due to addition of declination.
-  if(heading > 2*PI)
-    heading -= 2*PI;
+  //if(heading > 2*PI)
+  //  heading -= 2*PI;
    
   // Convert radians to degrees for readability.
-  currentRotation = (uint16_t) (heading * 180/M_PI);
-  if(currentRotation > 180)
-  {
-    currentRotation = (currentRotation - 360);
-  }
+  //currentRotation = (uint16_t) (heading * 180/M_PI);
+  //if(currentRotation > 180)
+  //{
+  //  currentRotation = (currentRotation - 360);
+  //}
   
   rotationalDifference = currentRotation - requiredRotation;
 
@@ -309,7 +309,7 @@ void serialEvent()
         switch(serialData[0])
         {
           case DIRECTION_DATA_START_BYTE:
-            //currentRotation = ((uint16_t)serialData[1] << 8) + ((uint16_t) serialData[2]);
+            currentRotation = ((uint16_t)serialData[1] << 8) + ((uint16_t) serialData[2]);
             requiredRotation = ((uint16_t)serialData[3] << 8) + ((uint16_t) serialData[4]);
             robotSpeed = serialData[5];
             break;
