@@ -60,8 +60,8 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
         hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
 
-        lower = np.array([92,37,164],dtype="uint8")
-        upper = np.array([110,198,255], dtype="uint8")
+        lower = np.array([67,23,121],dtype="uint8")
+        upper = np.array([133,255,255], dtype="uint8")
         
         mask = cv2.inRange(hsv, lower, upper)
         output = cv2.bitwise_and(image, image, mask=mask)
@@ -78,8 +78,13 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         keypoints = detector.detect(cropped_gray)
         #im_k = cv2.drawKeypoints(cropped_gray, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-	if counter == 10:
-		print "I see " + str(lights/10.) + " lights."
+	if counter == 30:
+		if lights/30. < 1.5 and lights/30. > 0.5:
+			print "I see 1 light."
+		elif lights/30. < 2.5 and lights/30. > 1.5:
+			print "I see 2 lights."
+		else:
+			print "I don't see any lights."
 		counter = 0
 		lights = 0
 	lights += len(keypoints)
