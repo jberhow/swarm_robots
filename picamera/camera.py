@@ -16,7 +16,7 @@ rawCapture = PiRGBArray(camera, size=(480, 320))
 time.sleep(0.1)
  
 def nothing(x):
-	pass
+        pass
 
 img = np.zeros((300,512,3),np.uint8)
 cv2.namedWindow('HSV Calibration')
@@ -47,30 +47,30 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
         #thresh = cv2.inRange(hsv,np.array((0, 200, 200)), np.array((20, 255, 255)))
 
-	hmin = cv2.getTrackbarPos('Hmin','HSV Calibration')
-	smin = cv2.getTrackbarPos('Smin','HSV Calibration')
-	vmin = cv2.getTrackbarPos('Vmin','HSV Calibration')
+        hmin = cv2.getTrackbarPos('Hmin','HSV Calibration')
+        smin = cv2.getTrackbarPos('Smin','HSV Calibration')
+        vmin = cv2.getTrackbarPos('Vmin','HSV Calibration')
 
-	hmax = cv2.getTrackbarPos('Hmax','HSV Calibration')
-	smax = cv2.getTrackbarPos('Smax','HSV Calibration')
-	vmax = cv2.getTrackbarPos('Vmax','HSV Calibration')
+        hmax = cv2.getTrackbarPos('Hmax','HSV Calibration')
+        smax = cv2.getTrackbarPos('Smax','HSV Calibration')
+        vmax = cv2.getTrackbarPos('Vmax','HSV Calibration')
 
         lower = np.array([hmin,smin,vmin],dtype="uint8")
         upper = np.array([hmax,smax,vmax], dtype="uint8")
         
         mask = cv2.inRange(hsv, lower, upper)
-	output = cv2.bitwise_and(image, image, mask=mask)
+        output = cv2.bitwise_and(image, image, mask=mask)
 
-	cropped_img = image[50:260, 115:325]
-	cropped_output = output[50:260, 115:325]
-	cropped_hue = np.copy(cropped_output[:,:,0])
-	cropped_sat = np.copy(cropped_output[:,:,1])
-	cropped_val = np.copy(cropped_output[:,:,2])
-	cropped_gray = cv2.addWeighted(cropped_hue, 0.5, cropped_sat, 0.5, 0.0)
-	cropped_gray[cropped_gray > 0] = 255
-	
-	#cropped_val[cropped_val >= vmin] = 255
-	#cropped_val[cropped_val < vmin] = 0
+        cropped_img = image[50:260, 115:325]
+        cropped_output = output[50:260, 115:325]
+        cropped_hue = np.copy(cropped_output[:,:,0])
+        cropped_sat = np.copy(cropped_output[:,:,1])
+        cropped_val = np.copy(cropped_output[:,:,2])
+        cropped_gray = cv2.addWeighted(cropped_hue, 0.5, cropped_sat, 0.5, 0.0)
+        cropped_gray[cropped_gray > 0] = 255
+        
+        #cropped_val[cropped_val >= vmin] = 255
+        #cropped_val[cropped_val < vmin] = 0
         
         #summed_output = np.zeros([360,3])
         #for angle in range(0, 360):
@@ -154,9 +154,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         
         key = cv2.waitKey(1) & 0xFF
  
-	# clear the stream in preparation for the next frame
+        # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
  
-	# if the `q` key was pressed, break from the loop
+        # if the `q` key was pressed, break from the loop
         if key == ord("q"):
-        	break
+                break
