@@ -39,9 +39,9 @@ class Camera():
 
     def __init__(self, myrobot):
         self.mini_screen = pygame.Surface((160, 50))
-        self.hanglitude_list = []
         self.myrobot = myrobot
         self.hanglitude_list = []
+        self.closest = (0,0)
         
     def update(self):
         self.hanglitude_list = robots[:]
@@ -57,19 +57,21 @@ class Camera():
                         robot.rect.center[1])**2))
                 self.hanglitude_list[robot.n] = (angle +
                         self.myrobot.hangulation, distance)
+        if self.hanglitude_list:
+            if not isinstance(self.hanglitude_list[0], Robot):
+                self.closest = self.hanglitude_list[0]
+            else:
+                self.closest = (9999, 9999)
+        return self.closest
 
     def draw(self):
         self.mini_screen.fill(colors['black'])
 
         if self.hanglitude_list:
-            if not isinstance(self.hanglitude_list[0], Robot):
-                closest = self.hanglitude_list[0]
-            else:
-                closest = (9999, 9999)
             for hanglitude in self.hanglitude_list:
                 if not isinstance(hanglitude, Robot):
-                    if (hanglitude[1] < closest[1]):
-                        closest = hanglitude
+                    if (hanglitude[1] < self.closest[1]):
+                        self.closest = hanglitude
                     # y = mx + b convering angles to x-axis
                     start_point = 80*hanglitude[0]/math.pi+80
                     # height will be 50 pixels tall
@@ -80,8 +82,8 @@ class Camera():
                             (int(start_point), 50),
                             (int(start_point), 50 - int(end_point)))
 
-            start_point = 80*closest[0]/math.pi+80
-            end_point = -closest[1] / 8. + 50
+            start_point = 80*self.closest[0]/math.pi+80
+            end_point = -self.closest[1] / 8. + 50
             pygame.draw.line(self.mini_screen, colors['red'],
                     (int(start_point), 50),
                     (int(start_point), 50 - int(end_point)))
@@ -205,6 +207,8 @@ class Robot():
 
 
     def update(self):
+        # update camera to get closest
+        closest = self.camera.update()
         #Keep robot angle withhin -pi to pi
         if (self.hangulation > math.pi):
             self.hangulation = -math.pi
@@ -276,7 +280,6 @@ class Robot():
             sensor.update(tuple(map(operator.add, self.rect.center, (self.rect.height/2*math.cos(self.hangulation),
                 -self.rect.height/2*math.sin(self.hangulation)))), self.hangulation)
 
-        self.camera.update()
 
 
     def rotate_ccw(self):

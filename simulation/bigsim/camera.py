@@ -17,6 +17,8 @@ class Camera():
         self.hanglitude_list = []
         self.cam_screen = cam_screen
         
+    # things needed from robot for update:
+    #   
     def update(self):
         self.hanglitude_list = robots[:]
         for robot in robots:
